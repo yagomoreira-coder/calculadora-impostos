@@ -818,7 +818,7 @@ a{color:var(--brand-2)}
       <div class="grid grid-4" style="margin-top:12px">
         <div class="field" style="grid-column:span 2">
           <label for="fxUrl">Link/local da base (atualização diária, opcional)</label>
-          <input id="fxUrl" placeholder="https://.../TaxaConversaoCambio.csv" />
+         <input id="fxUrl" placeholder="https://.../TaxaConversaoCambio.csv" value="https://yagomoreira-coder.github.io/calculadora-impostos/TaxaConversaoCambio.csv" />
           <div class="hint">Se informado, o sistema recarrega desta URL a cada abertura — sem alterar o código.</div>
         </div>
         <div class="field" style="justify-content:flex-end">
@@ -1628,6 +1628,7 @@ renderList();
   };
 
   const LS_BASE='calcImp_fxBase', LS_URL='calcImp_fxUrl', LS_AUTO='calcImp_fxAuto';
+  const DEFAULT_FX_URL='https://yagomoreira-coder.github.io/calculadora-impostos/TaxaConversaoCambio.csv';
   const STATE={rates:{}, desc:{}, baseDate:'—', source:'—', ts:null};
   let AUTO = true;
 
@@ -1807,8 +1808,12 @@ renderList();
     // auto-preencher ao selecionar moeda / país (aditivo aos listeners existentes)
     const moedaEl=document.getElementById('moeda'); if(moedaEl) moedaEl.addEventListener('change', ()=> fxAutoFill('moeda'));
     const paisEl=document.getElementById('paisOrigem'); if(paisEl) paisEl.addEventListener('change', ()=> fxAutoFill('pais'));
-    // URL salva
-    try{ const u=localStorage.getItem(LS_URL); if(u){ const el=document.getElementById('fxUrl'); if(el) el.value=u; } }catch(e){}
+    // URL salva ou padrão centralizada
+try{
+  const u=localStorage.getItem(LS_URL) || DEFAULT_FX_URL;
+  const el=document.getElementById('fxUrl');
+  if(el) el.value=u;
+}catch(e){}
     // preferência auto
     try{ const a=localStorage.getItem(LS_AUTO); if(a==='0'){ AUTO=false; document.querySelectorAll('#fxAutoToggle button').forEach(x=>x.classList.toggle('active', x.dataset.fx==='off')); } }catch(e){}
   }
@@ -1820,10 +1825,15 @@ renderList();
     try{ const embed=JSON.parse(document.getElementById('fx-data').textContent); embed.source='Base padrão embarcada'; embed.ts=Date.now(); applyBase(embed,false); }catch(e){}
     // 2) base salva (importada anteriormente)
     try{ const cached=localStorage.getItem(LS_BASE); if(cached){ const b=JSON.parse(cached); b.source=(b.source||'Base salva'); applyBase(b,false); } }catch(e){}
-    // 3) URL diária (se configurada) — recarrega a cada abertura, sem alterar código
-    try{ const u=localStorage.getItem(LS_URL); if(u){ const el=document.getElementById('fxUrl'); if(el) el.value=u; fxLoadFromUrl(false); } }catch(e){}
-    fxStatus('', '');
-  }
+    // 3) URL diária padrão — recarrega a cada abertura, sem alterar código
+try{
+  const u=localStorage.getItem(LS_URL) || DEFAULT_FX_URL;
+  const el=document.getElementById('fxUrl');
+  if(el) el.value=u;
+  fxLoadFromUrl(false);
+}catch(e){}
+
+fxStatus('', '');
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
